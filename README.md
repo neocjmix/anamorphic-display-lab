@@ -39,3 +39,7 @@ npm run build
 이름에 `world-locked`를 사용하더라도 현재 구현은 동작 중 world-lock 안정성을 입증하지 않습니다. 자동 테스트나 스크린샷만으로 사람의 착시 성공을 판정하지 않습니다.
 
 좌표, 투영식, 실패 기준, 기록 양식은 [실험 계획](docs/EXPERIMENT_PLAN.md)을 참고하세요.
+
+## 검증 상태 (2026-10-09)
+
+Phase 1 구현: 수동 파라미터, 명시적 정적 이미지 생성, 원본/투영 비교, ray 디버그 뷰, 실험 화면, PNG/JSON/URL 저장, 기기 내 관찰 기록 및 설정 재사용. 로컬 `npm run check` 통과: 단위 테스트 16개, TypeScript, production build. 지각적 성공 및 실제 iPhone Safari 관찰은 아직 미측정입니다.
