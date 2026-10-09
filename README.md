@@ -2,7 +2,7 @@
 
 단일 눈 위치에서 기울어진 휴대폰 화면에 표시한 `HELLO`가 고정된 가상 평면의 글자처럼 보이는지 확인하는 **Phase 0/1 정적 웹 실험**입니다. 기하 계산의 정확성과 실제 착시 경험을 구분합니다. 현재 인간 관찰 결과는 **미측정 / pending**입니다.
 
-[Public GitHub repository](https://github.com/neocjmix/anamorphic-display-lab) · [GitHub Pages 배포 예정 주소](https://neocjmix.github.io/anamorphic-display-lab/)
+[Public GitHub repository](https://github.com/neocjmix/anamorphic-display-lab) · [실험 열기 · GitHub Pages](https://neocjmix.github.io/anamorphic-display-lab/)
 
 ## 시작
 
@@ -14,7 +14,7 @@ npm run check
 npm run build
 ```
 
-개발 서버가 출력한 주소를 엽니다. `build` 결과는 정적 호스팅용이며 GitHub Pages에 배포할 수 있습니다. 배포 주소·성공 여부는 실제 배포 결과를 확인해야 합니다.
+개발 서버가 출력한 주소를 엽니다. `build` 결과는 정적 호스팅용이며 GitHub Pages에 배포할 수 있습니다. GitHub Actions에서 검증 후 HTTPS Pages에 배포합니다.
 
 ## 휴대폰에서 실험하기
 
@@ -43,3 +43,5 @@ npm run build
 ## 검증 상태 (2026-10-09)
 
 Phase 1 구현: 수동 파라미터, 명시적 정적 이미지 생성, 원본/투영 비교, ray 디버그 뷰, 실험 화면, PNG/JSON/URL 저장, 기기 내 관찰 기록 및 설정 재사용. 로컬 `npm run check` 통과: 단위 테스트 16개, TypeScript, production build. 지각적 성공 및 실제 iPhone Safari 관찰은 아직 미측정입니다.
+
+배포 확인: [Phase 1 CI/Pages](https://github.com/neocjmix/anamorphic-display-lab/actions/runs/37890398386) 성공. Cloud Chrome에서 이미지 생성, 원본 전환, 전체 화면 진입/종료, 특이점 차단, URL 복원, 로컬 기록 저장을 확인했습니다. PNG 다운로드 버튼은 구현되어 있으나 cloud browser의 다운로드 완료 이벤트를 받지 못해 파일 저장 완료는 미확인입니다. 실제 iPhone Safari의 저장 동작·표시 영역 교정·지각 결과는 사용자 관찰이 필요합니다.
