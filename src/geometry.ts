@@ -1,7 +1,10 @@
-/** Phase 1 static geometry. Millimetres; +x right, +y up, +z toward viewer.
+/** Projection geometry with an optional rigid display pose. Millimetres; +x right, +y up, +z toward viewer.
  * Rotation is right-handed about +Y. UV and viewport coordinates are y-down.
  * No tracking, temporal state, arbitrary corrective clamps, or hidden unit conversion.
  */
+import { normalizeQuaternion, rotateVector, type RigidPose } from './pose';
+export type { RigidPose, Quaternion } from './pose';
+
 export interface Vec2 { x: number; y: number }
 export interface Vec3 extends Vec2 { z: number }
 export interface DisplayConfig {
@@ -10,6 +13,8 @@ export interface DisplayConfig {
   angleDeg: number;
   /** World-space axis pivot; pivot.y has no effect for a Y-axis rotation. */
   pivot: Vec3;
+  /** Optional world delta around the baseline centre; eye and target stay fixed. */
+  pose?: RigidPose;
 }
 export interface TargetPlane { center: Vec3; widthMm: number; heightMm: number }
 export interface Calibration { eye: Vec3; display: DisplayConfig; target: TargetPlane }
@@ -17,7 +22,7 @@ export interface Viewport { width: number; height: number }
 export interface DisplayFrame { origin: Vec3; right: Vec3; up: Vec3; normal: Vec3 }
 export type GeometryError = 'non-finite' | 'invalid-size' | 'eye-on-screen-plane' |
   'eye-on-target-plane' | 'ill-conditioned-screen' | 'parallel-ray' |
-  'intersection-behind-eye' | 'point-off-target-plane' | 'degenerate-ray';
+  'intersection-behind-eye' | 'point-off-target-plane' | 'degenerate-ray' | 'invalid-pose';
 export type Result<T> = { ok: true; value: T } | { ok: false; reason: GeometryError };
 export interface Projection {
   screenLocalMm: Vec2;
@@ -48,7 +53,7 @@ const length = (v: Vec3) => Math.hypot(v.x,v.y,v.z);
 const insideUv = (v: Vec2) => v.x >= 0 && v.x <= 1 && v.y >= 0 && v.y <= 1;
 const validSize = (width: number, height: number) => Number.isFinite(width) && Number.isFinite(height) && width > 0 && height > 0;
 
-/** Rotates the initially calibrated display around a fixed world-space Y axis. */
+/** Builds the legacy Y/pivot baseline, then applies an optional rigid display pose. */
 export function buildDisplayFrame(display: DisplayConfig): Result<DisplayFrame> {
   if (!finite3(display.pivot) || !Number.isFinite(display.angleDeg)) return fail('non-finite');
   if (!validSize(display.widthMm, display.heightMm)) return fail('invalid-size');
@@ -58,7 +63,24 @@ export function buildDisplayFrame(display: DisplayConfig): Result<DisplayFrame> 
     origin: { x:p.x-c*p.x-s*p.z, y:0, z:p.z+s*p.x-c*p.z },
     right: { x:c,y:0,z:-s }, up:{ x:0,y:1,z:0 }, normal:{ x:s,y:0,z:c },
   };
-  return finite3(frame.origin) ? pass(frame) : fail('non-finite');
+  if (!finite3(frame.origin)) return fail('non-finite');
+  if (display.pose === undefined) return pass(frame);
+  const pose = display.pose;
+  if (!pose || !pose.translationMm || !pose.orientation) return fail('invalid-pose');
+  if (!finite3(pose.translationMm) ||
+      ![pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w].every(Number.isFinite)) return fail('non-finite');
+  const orientation = normalizeQuaternion(pose.orientation);
+  if (!orientation) return fail('invalid-pose');
+  // The live rotation pivots at the baseline screen centre, not the world origin
+  // or legacy hinge. World translation is independent of display orientation.
+  const posed: DisplayFrame = {
+    origin: { x: frame.origin.x + pose.translationMm.x,
+      y: frame.origin.y + pose.translationMm.y, z: frame.origin.z + pose.translationMm.z },
+    right: rotateVector(orientation, frame.right),
+    up: rotateVector(orientation, frame.up),
+    normal: rotateVector(orientation, frame.normal),
+  };
+  return finite3(posed.origin) ? pass(posed) : fail('non-finite');
 }
 
 /** Rejects configurations with no stable screen homography or target projection. */

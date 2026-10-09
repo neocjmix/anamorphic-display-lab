@@ -1,0 +1,17 @@
+import test from 'node:test';import assert from 'node:assert/strict';
+import {renderLive} from '../src/live-render';import {renderProjection} from '../src/render';import {DEFAULT_CALIBRATION} from '../src/state';import {LEGACY_GRIDS} from '../src/grids';import {quaternionFromEulerDegrees} from '../src/pose';
+function mock(){let output:ImageData|undefined;const ctx={fillStyle:'',fillRect(){},createImageData(w:number,h:number){return {width:w,height:h,data:new Uint8ClampedArray(w*h*4)} as ImageData;},putImageData(p:ImageData){output=p;}};return {canvas:{width:0,height:0,getContext:()=>ctx} as unknown as HTMLCanvasElement,get output(){return output!}};}
+const pixels={width:2,height:2,data:new Uint8ClampedArray([0,40,80,255,40,80,120,255,80,120,160,255,120,160,200,255])} as ImageData;
+const texture={width:2,height:2,getContext:()=>({getImageData:()=>pixels})} as unknown as HTMLCanvasElement;
+test('optimized inverse homography matches reference raster at identical resolution under full rigid pose',()=>{
+ for(const yaw of [0,30,-45]){const c=structuredClone(DEFAULT_CALIBRATION);c.display.angleDeg=yaw;c.display.pose={orientation:quaternionFromEulerDegrees({pitchDeg:13,yawDeg:-9,rollDeg:17}),translationMm:{x:4,y:-8,z:3}};
+ const live=mock(),reference=mock();renderLive(live.canvas,c,pixels,LEGACY_GRIDS);renderProjection(reference.canvas,c,texture,live.canvas.width,live.canvas.height);
+ assert.equal(live.output.data.length,reference.output.data.length);let maxError=0;for(let i=0;i<live.output.data.length;i++)maxError=Math.max(maxError,Math.abs(live.output.data[i]-reference.output.data[i]));assert.ok(maxError<=1,`Max channel rounding error ${maxError}`);}
+});
+test('pane splits crossing target by ray depth without altering target coverage',()=>{const c=structuredClone(DEFAULT_CALIBRATION);c.display.angleDeg=40;c.target.widthMm=100;c.target.heightMm=100;const plain=mock(),pane=mock();renderLive(plain.canvas,c,pixels,LEGACY_GRIDS);renderLive(pane.canvas,c,pixels,LEGACY_GRIDS,{enabled:true,opacity:.5});let same=0,changed=0;for(let i=0;i<plain.output.data.length;i+=4){if(plain.output.data[i]===pane.output.data[i])same++;else changed++;}assert.ok(same>100);assert.ok(changed>100);});
+test('screen grid stays beneath front target when blue pane is enabled',()=>{
+ let data:ImageData;const ctx={fillStyle:'',strokeStyle:'',globalAlpha:1,lineWidth:1,fillRect(){},save(){},restore(){},setLineDash(){},beginPath(){},moveTo(){},lineTo(){},stroke(){for(let i=0;i<data.data.length;i+=4){data.data[i]=255;data.data[i+1]=0;data.data[i+2]=0;}},createImageData(w:number,h:number){return {width:w,height:h,data:new Uint8ClampedArray(w*h*4)} as ImageData},putImageData(p:ImageData){data={...p,data:p.data.slice()}},getImageData(){return {...data,data:data.data.slice()}}};
+ const canvas={width:0,height:0,getContext:()=>ctx} as unknown as HTMLCanvasElement,c=structuredClone(DEFAULT_CALIBRATION);c.display.angleDeg=0;c.display.widthMm=68;c.display.heightMm=68;c.target.center.z=20;c.target.widthMm=30;c.target.heightMm=30;
+ const plain=mock();renderLive(plain.canvas,c,pixels,LEGACY_GRIDS,{enabled:true,opacity:.4});renderLive(canvas,c,pixels,{...LEGACY_GRIDS,screen:true},{enabled:true,opacity:.4});
+ const middle=(Math.floor(canvas.height/2)*canvas.width+Math.floor(canvas.width/2))*4;assert.deepEqual([...data!.data.slice(middle,middle+3)],[...plain.output.data.slice(middle,middle+3)]);assert.deepEqual([...data!.data.slice(0,3)],[255,0,0]);
+});

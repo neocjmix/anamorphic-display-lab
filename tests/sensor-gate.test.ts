@@ -1,0 +1,2 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {sensorPoseReady} from '../src/sensor-gate';
+test('A/B resume cannot make invalid reference or stale sample renderable',()=>{assert.equal(sensorPoseReady(true,true,100,150,0,0),true);for(const [calibrated,ref,at,now,angle] of [[false,true,100,150,0],[true,false,100,150,0],[true,true,null,150,0],[true,true,100,401,0],[true,true,100,150,90]] as const)assert.equal(sensorPoseReady(calibrated,ref,at,now,angle,0),false);});

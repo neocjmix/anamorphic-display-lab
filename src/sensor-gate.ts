@@ -1,0 +1,2 @@
+/** Validity is independent of the A/B image freeze control. Invalid sensor state never renders an identity fallback. */
+export function sensorPoseReady(calibrated:boolean,hasReference:boolean,sampleAt:number|null,now:number,currentAngle:number,referenceAngle:number):boolean{return calibrated&&hasReference&&sampleAt!==null&&Number.isFinite(sampleAt)&&now>=sampleAt&&now-sampleAt<=300&&currentAngle===referenceAngle;}
