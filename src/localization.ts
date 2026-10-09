@@ -2,6 +2,7 @@ import type {GeometryError} from './geometry';
 
 const geometryErrors: Record<GeometryError,string> = {
  'non-finite':'좌표와 각도에는 유한한 숫자를 입력하세요',
+ 'invalid-pose':'화면 자세의 회전값 또는 이동값이 올바르지 않습니다',
  'invalid-size':'가로와 세로 길이는 0보다 커야 합니다',
  'eye-on-screen-plane':'눈이 실제 화면 평면 위에 있습니다',
  'eye-on-target-plane':'눈이 가상 표적 평면 위에 있습니다',
@@ -13,6 +14,7 @@ const geometryErrors: Record<GeometryError,string> = {
 };
 export function geometryErrorLabel(reason:GeometryError):string {return geometryErrors[reason];}
 const parserErrors:Record<string,string> = {
+ 'Pose must contain a finite nonzero quaternion and bounded translation.':'회전값은 유효한 사원수여야 하며 이동값은 유한한 범위 안에 있어야 합니다.',
  'Invalid grid settings.':'격자 표시값과 간격을 확인하세요. 간격은 1~1,000 mm 사이여야 합니다.',
  'Expected a version 1 calibration file.':'버전 1 형식의 보정 파일이 필요합니다.',
  'Calibration must contain finite numeric dimensions and coordinates.':'보정값의 치수와 좌표에는 유한한 숫자를 입력하세요. 좌표의 절댓값은 1,000,000 mm 이하여야 합니다.',

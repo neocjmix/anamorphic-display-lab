@@ -5,3 +5,7 @@
 .field>select{display:block;width:100%;max-width:100%;min-width:0;padding:10px;border:1px solid #3c4634;border-radius:5px;background:#111610;color:#e0e7d5;font-size:12px}.field select option{white-space:normal}
 
 .grid-toggle{display:flex;align-items:center;gap:8px;font-size:11px;margin:12px 0 9px}.grid-toggle input{accent-color:#c9ef8b;width:16px;height:16px}.screen-grid{color:#72c8ef}.plane-grid{color:#c9ef8b}.grid-settings .field{display:block;max-width:180px}
+/* Live canvas uses exactly the same calibrated display rectangle as static images. */
+.live-canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;background:#000}
+.live-controls{position:absolute;top:12px;left:12px;right:12px;max-height:57vh;overflow:auto;background:#102024ed;border:1px solid #467477;border-radius:12px;padding:12px;color:#fff;font-size:12px;z-index:2}
+.live-controls p{margin:7px 0}.live-controls h3{margin:10px 0}.live-controls button{font-size:12px;padding:8px;margin:2px}.live-fields{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.live-fields label{display:flex;flex-direction:column;gap:3px}.live-fields input{width:100%;min-width:0}.live-fields input[type=number]{color:#fff;background:#162f34;padding:5px;border:1px solid #486164}.live-controls .warning{font-size:11px;padding:8px}.live-controls .fine{font-size:10px}
