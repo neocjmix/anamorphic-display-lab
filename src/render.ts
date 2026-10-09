@@ -1,7 +1,8 @@
 import {validateCalibration,displayLocalToWorld,intersectRayPlane,worldToTargetUv,projectVirtualPoint,targetUvToWorld, type Calibration, type Vec3} from './geometry';
-export function makeTexture(ratio=1.5):HTMLCanvasElement {
+import {drawGrid,LEGACY_GRIDS,type GridSettings} from './grids';
+export function makeTexture(ratio=1.5,plane?:{widthMm:number;heightMm:number;spacingMm:number}):HTMLCanvasElement {
  const canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(1200*Math.min(1,ratio)));canvas.height=Math.max(1,Math.round(1200*Math.min(1,1/ratio)));
- const w=canvas.width,h=canvas.height,ctx=canvas.getContext('2d')!;ctx.fillStyle='#000';ctx.fillRect(0,0,w,h);ctx.strokeStyle='#fff';ctx.lineWidth=Math.max(.01,Math.min(w,h)*.0075);const inset=ctx.lineWidth*2.5;ctx.strokeRect(inset,inset,w-inset*2,h-inset*2);ctx.fillStyle='#fff';ctx.textAlign='center';ctx.textBaseline='middle';ctx.font=`900 ${Math.min(w*.225,h*.6)}px Arial, Helvetica, sans-serif`;ctx.fillText('HELLO',w/2,h*.517,w*.9);return canvas;
+ const w=canvas.width,h=canvas.height,ctx=canvas.getContext('2d')!;ctx.fillStyle='#000';ctx.fillRect(0,0,w,h);if(plane)drawGrid(ctx,w,h,plane.widthMm,plane.heightMm,plane.spacingMm,'plane');ctx.strokeStyle='#fff';ctx.lineWidth=Math.max(.01,Math.min(w,h)*.0075);const inset=ctx.lineWidth*2.5;ctx.strokeRect(inset,inset,w-inset*2,h-inset*2);ctx.fillStyle='#fff';ctx.textAlign='center';ctx.textBaseline='middle';ctx.font=`900 ${Math.min(w*.225,h*.6)}px Arial, Helvetica, sans-serif`;ctx.fillText('HELLO',w/2,h*.517,w*.9);return canvas;
 }
 export function renderProjection(canvas:HTMLCanvasElement,c:Calibration,texture:HTMLCanvasElement,width=Math.round(680*Math.max(1,Math.min(2,globalThis.devicePixelRatio||1))),height=Math.max(1,Math.round(width*c.display.heightMm/c.display.widthMm))):void {
  if(!Number.isFinite(width)||!Number.isFinite(height)||width<=0||height<=0)throw new Error('이미지 해상도 값이 올바르지 않습니다');
@@ -15,10 +16,22 @@ export function renderProjection(canvas:HTMLCanvasElement,c:Calibration,texture:
   if(!hit.ok)continue;
   const uv=worldToTargetUv(hit.value.point,c.target);if(uv.x<0||uv.x>1||uv.y<0||uv.y>1)continue;const sx=Math.max(0,Math.min(texture.width-1,uv.x*(texture.width-1)));const sy=Math.max(0,Math.min(texture.height-1,uv.y*(texture.height-1)));
   const x0=Math.floor(sx),y0=Math.floor(sy),x1=Math.min(x0+1,texture.width-1),y1=Math.min(y0+1,texture.height-1);const fx=sx-x0,fy=sy-y0;
-  const pixel=(xx:number,yy:number)=>source.data[(yy*texture.width+xx)*4];
+  for(let channel=0;channel<3;channel++){
+  const pixel=(xx:number,yy:number)=>source.data[(yy*texture.width+xx)*4+channel];
   const v=(pixel(x0,y0)*(1-fx)+pixel(x1,y0)*fx)*(1-fy)+(pixel(x0,y1)*(1-fx)+pixel(x1,y1)*fx)*fy;
-  out.data[i]=out.data[i+1]=out.data[i+2]=v;
+  out.data[i+channel]=v;}
  }ctx.putImageData(out,0,0);
+}
+/** Rasterize both comparison modes at the same display extent, then overlay the screen grid. */
+export function renderComparison(canvas:HTMLCanvasElement,c:Calibration,texture:HTMLCanvasElement,grids:GridSettings=LEGACY_GRIDS,mode:'projected'|'original'='projected'):void {
+ if(mode==='projected')renderProjection(canvas,c,texture);
+ else {
+  const width=Math.round(680*Math.max(1,Math.min(2,globalThis.devicePixelRatio||1))),height=Math.max(1,Math.round(width*c.display.heightMm/c.display.widthMm));
+  const scale=Math.min(1,1800/Math.max(width,height));canvas.width=Math.max(1,Math.round(width*scale));canvas.height=Math.max(1,Math.round(height*scale));
+  const ctx=canvas.getContext('2d')!;ctx.fillStyle='#000';ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.drawImage(texture,(.5+(c.target.center.x-c.target.widthMm/2)/c.display.widthMm)*canvas.width,(.5-(c.target.center.y+c.target.heightMm/2)/c.display.heightMm)*canvas.height,c.target.widthMm/c.display.widthMm*canvas.width,c.target.heightMm/c.display.heightMm*canvas.height);
+ }
+ if(grids.screen)drawGrid(canvas.getContext('2d')!,canvas.width,canvas.height,c.display.widthMm,c.display.heightMm,grids.screenSpacingMm,'screen');
 }
 export function drawDebug(canvas:HTMLCanvasElement,c:Calibration):void {
  canvas.width=1000;canvas.height=520;const ctx=canvas.getContext('2d')!;ctx.fillStyle='#111718';ctx.fillRect(0,0,1000,520);
