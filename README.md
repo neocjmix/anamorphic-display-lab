@@ -1,2 +1,41 @@
-# anamorphic-display-lab
-A controlled, single-viewpoint experiment in world-locked anamorphic display geometry and perception.
+# Anamorphic Display Lab
+
+단일 눈 위치에서 기울어진 휴대폰 화면에 표시한 `HELLO`가 고정된 가상 평면의 글자처럼 보이는지 확인하는 **Phase 0/1 정적 웹 실험**입니다. 기하 계산의 정확성과 실제 착시 경험을 구분합니다. 현재 인간 관찰 결과는 **미측정 / pending**입니다.
+
+[Public GitHub repository](https://github.com/neocjmix/anamorphic-display-lab) · [GitHub Pages 배포 예정 주소](https://neocjmix.github.io/anamorphic-display-lab/)
+
+## 시작
+
+```sh
+npm install
+npm run dev
+npm test
+npm run check
+npm run build
+```
+
+개발 서버가 출력한 주소를 엽니다. `build` 결과는 정적 호스팅용이며 GitHub Pages에 배포할 수 있습니다. 배포 주소·성공 여부는 실제 배포 결과를 확인해야 합니다.
+
+## 휴대폰에서 실험하기
+
+1. 세로 방향으로 열고, 실험 화면을 가능한 한 크게 표시합니다. 입력 패널이 있는 상태와 실험 화면의 표시 영역을 혼동하지 마세요.
+2. 자로 **실제로 패턴을 표시하는 사각 영역**의 가로·세로를 측정해 화면 크기(mm)에 입력합니다. 기본값 `68 × 147 mm`는 예시이며 기기 본체 크기나 제조사 화면 사양을 대신 쓸 수 없습니다.
+3. 가능하면 화면의 교정 눈금도 실제 자와 비교합니다. CSS의 `mm`, CSS 픽셀, device pixel ratio만으로 물리 크기를 보장할 수 없습니다. 화면 확대·방향·주소 표시줄 상태가 바뀌면 다시 측정합니다.
+4. 초기 정면 화면 중심을 원점으로 잡고 눈을 `(0, 0, 350) mm`에 둡니다. 한쪽 눈을 편안하게 감고 관찰합니다. 눈의 가로·세로 오프셋도 수동 입력할 수 있습니다.
+5. 지지대와 각도 기준을 사용해 화면을 지정한 pivot 주위로 Y축 `30°` 회전시킨 뒤 **멈춥니다**. 실제 회전축과 입력한 pivot이 같아야 합니다. 화면 중심 pivot이라면 중심 위치를 유지합니다.
+6. 눈과 화면을 고정한 채 보정된 패턴과 보정하지 않은 기준 패턴을 비교합니다. 글자·테두리의 비례, 가상 평면처럼 느껴지는지, 잘림을 각각 기록합니다.
+
+**이 단계에서는 움직이며 관찰하지 마세요.** 화면 자세와 눈 위치를 자동으로 추적하지 않습니다. 수동 입력은 실제 자세를 측정하거나 유지해 주지 않습니다. Safari 주소 표시줄 등 browser chrome이 바뀌면 표시 영역과 중심도 달라질 수 있습니다. 전체 화면 요청이 지원되지 않으면 안정된 viewport를 사용하고 그 영역을 교정하세요. 어지럽거나 눈이 피로하면 중단합니다.
+
+## 실험 범위
+
+- Phase 0: 좌표·교정·ray/plane 기하 및 오류 처리 검증
+- Phase 1: 고정된 눈과 수동으로 고정한 화면 자세에서 정적 지각 비교
+- 현재 제외: 센서, 자동 애니메이션, 카메라, 머리/눈 추적, 6DoF
+- Phase 2: 이후 별도 단계의 수동 dynamic 실험
+- Phase 3: Phase 2 결과 검토와 사용자 승인 이후만 진행
+- Phase 4: 지각 실험 결과와 명시적 승인 이후 iOS feasibility 검토만 수행
+
+이름에 `world-locked`를 사용하더라도 현재 구현은 동작 중 world-lock 안정성을 입증하지 않습니다. 자동 테스트나 스크린샷만으로 사람의 착시 성공을 판정하지 않습니다.
+
+좌표, 투영식, 실패 기준, 기록 양식은 [실험 계획](docs/EXPERIMENT_PLAN.md)을 참고하세요.
