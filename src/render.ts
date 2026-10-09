@@ -4,7 +4,7 @@ export function makeTexture(ratio=1.5):HTMLCanvasElement {
  const w=canvas.width,h=canvas.height,ctx=canvas.getContext('2d')!;ctx.fillStyle='#000';ctx.fillRect(0,0,w,h);ctx.strokeStyle='#fff';ctx.lineWidth=Math.max(.01,Math.min(w,h)*.0075);const inset=ctx.lineWidth*2.5;ctx.strokeRect(inset,inset,w-inset*2,h-inset*2);ctx.fillStyle='#fff';ctx.textAlign='center';ctx.textBaseline='middle';ctx.font=`900 ${Math.min(w*.225,h*.6)}px Arial, Helvetica, sans-serif`;ctx.fillText('HELLO',w/2,h*.517,w*.9);return canvas;
 }
 export function renderProjection(canvas:HTMLCanvasElement,c:Calibration,texture:HTMLCanvasElement,width=Math.round(680*Math.max(1,Math.min(2,globalThis.devicePixelRatio||1))),height=Math.max(1,Math.round(width*c.display.heightMm/c.display.widthMm))):void {
- if(!Number.isFinite(width)||!Number.isFinite(height)||width<=0||height<=0)throw new Error('Invalid raster dimensions');
+ if(!Number.isFinite(width)||!Number.isFinite(height)||width<=0||height<=0)throw new Error('이미지 해상도 값이 올바르지 않습니다');
  const scale=Math.min(1,1800/Math.max(width,height));canvas.width=Math.max(1,Math.round(width*scale));canvas.height=Math.max(1,Math.round(height*scale));
  const checked=validateCalibration(c);if(!checked.ok)throw new Error(checked.reason);
  const ctx=canvas.getContext('2d')!;const source=texture.getContext('2d')!.getImageData(0,0,texture.width,texture.height);const out=ctx.createImageData(canvas.width,canvas.height);
@@ -34,7 +34,7 @@ export function drawDebug(canvas:HTMLCanvasElement,c:Calibration):void {
  const poly=(ps:Vec3[],color:string)=>{ctx.strokeStyle=color;ctx.lineWidth=2;ctx.beginPath();ps.forEach((v,i)=>{const q=map(v);i?ctx.lineTo(q.x,q.y):ctx.moveTo(q.x,q.y)});ctx.closePath();ctx.stroke();};
  poly(targets,'#c9ef8b');poly(display,'#72c8ef');
  const label=(v:Vec3,s:string,color:string)=>{const q=map(v);ctx.fillStyle=color;ctx.beginPath();ctx.arc(q.x,q.y,4,0,Math.PI*2);ctx.fill();ctx.font='18px system-ui';ctx.fillText(s,q.x+10,q.y-10);};
- label(c.eye,'E · fixed eye','#fff');label(targets[0],'V · virtual plane','#c9ef8b');label(display[2],'S · physical display','#72c8ef');label(p,'P · rotation pivot','#f6bf83');
+ label(c.eye,'E · 고정된 눈','#fff');label(targets[0],'V · 가상 평면','#c9ef8b');label(display[2],'S · 실제 화면','#72c8ef');label(p,'P · 회전 중심','#f6bf83');
  targets.forEach(t=>{const hit=projectVirtualPoint(t,c);if(hit.ok)label(hit.value.screenWorld,'','#fff');});
- const origin={x:0,y:0,z:0};line(origin,{x:30,y:0,z:0},'#ec8b8b');line(origin,{x:0,y:30,z:0},'#a8d885');line(origin,{x:0,y:0,z:30},'#91b4e5');label({x:30,y:0,z:0},'+X','#ec8b8b');label({x:0,y:30,z:0},'+Y','#a8d885');label({x:0,y:0,z:30},'+Z','#91b4e5');ctx.font='15px system-ui';ctx.fillStyle='#a4aeae';ctx.fillText('Orthographic diagram · not the image seen by the eye',30,490);
+ const origin={x:0,y:0,z:0};line(origin,{x:30,y:0,z:0},'#ec8b8b');line(origin,{x:0,y:30,z:0},'#a8d885');line(origin,{x:0,y:0,z:30},'#91b4e5');label({x:30,y:0,z:0},'+X','#ec8b8b');label({x:0,y:30,z:0},'+Y','#a8d885');label({x:0,y:0,z:30},'+Z','#91b4e5');ctx.font='15px system-ui';ctx.fillStyle='#a4aeae';ctx.fillText('직교 투영 도식 · 눈에 보이는 실제 장면과는 다릅니다',30,490);
 }
